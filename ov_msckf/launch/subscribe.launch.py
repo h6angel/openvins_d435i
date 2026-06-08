@@ -18,7 +18,7 @@ launch_args = [
     DeclareLaunchArgument(
         name="config",
         default_value="euroc_mav",
-        description="euroc_mav, tum_vi, rpng_aruco...",
+        description="euroc_mav, rs_d435i, rs_d455, tum_vi, rpng_aruco, ...",
     ),
     DeclareLaunchArgument(
         name="config_path",

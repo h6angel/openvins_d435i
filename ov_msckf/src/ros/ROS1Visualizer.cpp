@@ -49,6 +49,8 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
   PRINT_DEBUG("Publishing: %s\n", pub_poseimu.getTopic().c_str());
   pub_odomimu = nh->advertise<nav_msgs::Odometry>("odomimu", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_odomimu.getTopic().c_str());
+  pub_pose_stamped = nh->advertise<geometry_msgs::PoseStamped>("pose_stamped", 2);
+  PRINT_DEBUG("Publishing: %s\n", pub_pose_stamped.getTopic().c_str());
   pub_pathimu = nh->advertise<nav_msgs::Path>("pathimu", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_pathimu.getTopic().c_str());
 
@@ -83,6 +85,8 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
   // option to enable publishing of global to IMU transformation
   nh->param<bool>("publish_global_to_imu_tf", publish_global2imu_tf, true);
   nh->param<bool>("publish_calibration_tf", publish_calibration_tf, true);
+  nh->param<bool>("publish_pose_stamped", publish_pose_stamped, true);
+  nh->param<std::string>("pose_stamped_frame_id", pose_stamped_frame_id, "global");
 
   // Load groundtruth if we have it and are not doing simulation
   // NOTE: needs to be a csv ASL format file
@@ -324,6 +328,20 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
       }
     }
     pub_odomimu.publish(odomIinM);
+  }
+
+  if (publish_pose_stamped) {
+    geometry_msgs::PoseStamped poseIinG;
+    poseIinG.header.stamp = ros::Time(timestamp);
+    poseIinG.header.frame_id = pose_stamped_frame_id;
+    poseIinG.pose.orientation.x = state_plus(0);
+    poseIinG.pose.orientation.y = state_plus(1);
+    poseIinG.pose.orientation.z = state_plus(2);
+    poseIinG.pose.orientation.w = state_plus(3);
+    poseIinG.pose.position.x = state_plus(4);
+    poseIinG.pose.position.y = state_plus(5);
+    poseIinG.pose.position.z = state_plus(6);
+    pub_pose_stamped.publish(poseIinG);
   }
 
   // Publish our transform on TF

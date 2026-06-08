@@ -49,6 +49,8 @@ ROS2Visualizer::ROS2Visualizer(std::shared_ptr<rclcpp::Node> node, std::shared_p
   PRINT_DEBUG("Publishing: %s\n", pub_poseimu->get_topic_name());
   pub_odomimu = node->create_publisher<nav_msgs::msg::Odometry>("odomimu", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_odomimu->get_topic_name());
+  pub_pose_stamped = node->create_publisher<geometry_msgs::msg::PoseStamped>("pose_stamped", 2);
+  PRINT_DEBUG("Publishing: %s\n", pub_pose_stamped->get_topic_name());
   pub_pathimu = node->create_publisher<nav_msgs::msg::Path>("pathimu", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_pathimu->get_topic_name());
 
@@ -86,6 +88,12 @@ ROS2Visualizer::ROS2Visualizer(std::shared_ptr<rclcpp::Node> node, std::shared_p
   }
   if (node->has_parameter("publish_calibration_tf")) {
     node->get_parameter<bool>("publish_calibration_tf", publish_calibration_tf);
+  }
+  if (node->has_parameter("publish_pose_stamped")) {
+    node->get_parameter<bool>("publish_pose_stamped", publish_pose_stamped);
+  }
+  if (node->has_parameter("pose_stamped_frame_id")) {
+    node->get_parameter<std::string>("pose_stamped_frame_id", pose_stamped_frame_id);
   }
 
   // Load groundtruth if we have it and are not doing simulation
@@ -322,6 +330,21 @@ void ROS2Visualizer::visualize_odometry(double timestamp) {
       }
     }
     pub_odomimu->publish(odomIinM);
+  }
+
+  // PoseStamped for planners (e.g. EGO grid_map/pose): same IMU pose as odomimu, no twist
+  if (publish_pose_stamped) {
+    geometry_msgs::msg::PoseStamped poseIinG;
+    poseIinG.header.stamp = ROSVisualizerHelper::get_time_from_seconds(timestamp);
+    poseIinG.header.frame_id = pose_stamped_frame_id;
+    poseIinG.pose.orientation.x = state_plus(0);
+    poseIinG.pose.orientation.y = state_plus(1);
+    poseIinG.pose.orientation.z = state_plus(2);
+    poseIinG.pose.orientation.w = state_plus(3);
+    poseIinG.pose.position.x = state_plus(4);
+    poseIinG.pose.position.y = state_plus(5);
+    poseIinG.pose.position.z = state_plus(6);
+    pub_pose_stamped->publish(poseIinG);
   }
 
   // Publish our transform on TF

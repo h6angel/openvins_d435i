@@ -1,0 +1,30 @@
+# D435i + OpenVINS (ROS 2)
+#
+# 相机 / 深度 / EGO 建图接入总览见仓库根目录：
+#   ../../../../CAMERA_EGO_INTEGRATION.md  （openvins 仓库根目录）
+#
+# Config source (edit there, then copy into open_vins or rebuild after editing config/rs_d435i/):
+#   ../d1robot/rs_d435i/
+#
+# Topics (must match kalibr_*.yaml and realsense rs_launch.py defaults):
+#   IMU:    /camera/camera/imu
+#   Left:   /camera/camera/infra1/image_rect_raw
+#   Right:  /camera/camera/infra2/image_rect_raw
+#
+# Stereo infra resolution in kalibr_imucam_chain.yaml: 640x360
+# rs_launch.py defaults to depth_module.infra_profile:=640x360x90 (OpenVINS aligned)
+#
+# --- Terminal 1: camera ---
+# source ~/d1robot/realsense/install/setup.bash   # your realsense workspace
+# ros2 launch realsense2_camera rs_launch.py
+#
+# --- Terminal 2: OpenVINS ---
+# source ~/d1robot/openvins/install/setup.bash
+# ros2 launch ov_msckf subscribe.launch.py config:=rs_d435i use_stereo:=true max_cameras:=2
+#
+# Or both in one launch (needs realsense2_camera in ROS_PACKAGE_PATH):
+# ros2 launch ov_msckf d435i_openvins.launch.py
+#
+# EGO-Planner depth mapping (pose_type:=1): remap grid_map/pose to:
+#   /ov_msckf/pose_stamped   (geometry_msgs/PoseStamped, same pose as odomimu / IMU in global)
+# Set pose_stamped_frame_id:=world if EGO grid_map/frame_id is world.

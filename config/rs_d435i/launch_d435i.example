@@ -12,7 +12,7 @@
 #   Right:  /camera/camera/infra2/image_rect_raw
 #
 # Stereo infra resolution in kalibr_imucam_chain.yaml: 640x360
-# rs_launch.py defaults to depth_module.infra_profile:=640x360x90 (OpenVINS aligned)
+# rs_launch.py defaults to depth_module.infra_profile:=640x360x30 (OpenVINS track_frequency:=30)
 #
 # --- Terminal 1: camera ---
 # source ~/d1robot/realsense/install/setup.bash   # your realsense workspace
